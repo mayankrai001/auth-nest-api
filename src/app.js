@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const mongoDB = require("./config/db");
 const cors = require("cors");
+const authRoutes = require("./route/auth");
 
 app.use(
   cors({
@@ -13,6 +14,8 @@ app.use(
 );
 
 app.use(express.json());
+
+app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
