@@ -4,6 +4,7 @@ const mongoDB = require("./config/db");
 const cors = require("cors");
 const authRoutes = require("./route/auth");
 const profileRoutes = require("./route/profile");
+const adminRoutes = require("./route/admin");
 
 app.use(
   cors({
@@ -16,6 +17,7 @@ app.use(
 
 app.use(express.json());
 
+app.use(adminRoutes);
 app.use("/auth", authRoutes);
 app.use(profileRoutes);
 
