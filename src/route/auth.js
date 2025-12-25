@@ -1,6 +1,7 @@
 const express = require("express");
 const { signup, login, logout, refreshToken } = require("../controller/auth");
 const { rateLimit } = require("../middleware/rateLimit");
+// const { csrfProtection } = require("../controller/csrf");
 
 const router = express.Router();
 
