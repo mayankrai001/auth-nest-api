@@ -5,7 +5,8 @@ exports.rateLimit = ({ keyPrefix, windowSeconds, maxRequests }) => {
     try {
       // identify client (IP-based; prod mein userId bhi use kar sakte ho)
       const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
-      const key = `${keyPrefix}:${ip}`;
+      const userPart = req.user?.userId || "guest";
+      const key = `${keyPrefix}:${userPart}:${ip}`;
 
       const current = await redis.incr(key);
 
@@ -13,6 +14,11 @@ exports.rateLimit = ({ keyPrefix, windowSeconds, maxRequests }) => {
         // first hit -> set expiry
         await redis.expire(key, windowSeconds);
       }
+      res.setHeader("X-RateLimit-Limit", maxRequests);
+      res.setHeader(
+        "X-RateLimit-Remaining",
+        Math.max(0, maxRequests - current)
+      );
 
       if (current > maxRequests) {
         return res.status(429).json({
@@ -26,5 +32,5 @@ exports.rateLimit = ({ keyPrefix, windowSeconds, maxRequests }) => {
       console.error("Rate limit error:", err.message);
       next();
     }
-  }; 
+  };
 };
