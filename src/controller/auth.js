@@ -8,6 +8,7 @@ const {
   getRefreshToken,
 } = require("../service/token");
 const { refreshTTL } = require("../helper/ttl");
+const cookieOptions = require("../config/cookies");
 
 exports.signup = async (req, res) => {
   try {
@@ -47,18 +48,15 @@ exports.login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    const payload = { userId: user._id.toString() };
+    const payload = { userId: user._id.toString(), role: user.role };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
-    const saveRedis = await saveRefreshToken(
-      user._id.toString(),
-      refreshToken,
-      refreshTTL
-    );
-    console.log("Saved refresh token to Redis:", saveRedis);
+    await saveRefreshToken(user._id.toString(), refreshToken, refreshTTL);
     return res
       .status(200)
-      .json({ message: "Login successful", accessToken, refreshToken });
+      .cookie("accessToken", accessToken, cookieOptions.access)
+      .cookie("refreshToken", refreshToken, cookieOptions.refresh)
+      .json({ message: "Login successful" });
   } catch (error) {
     return res.status(500).json({ message: "Server error" });
   }
@@ -72,7 +70,10 @@ exports.logout = async (req, res) => {
     }
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     await deleteRefreshToken(decoded.userId);
-    return res.status(200).json({ message: "Logout successful" });
+    return res
+      .clearCookie("accessToken", cookieOptions.access)
+      .clearCookie("refreshToken", cookieOptions.refresh)
+      .json({ message: "Logged out successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -80,28 +81,29 @@ exports.logout = async (req, res) => {
 
 exports.refreshToken = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
       return res.status(400).json({ message: "Refresh token is required" });
     }
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     const userId = decoded.userId;
+    const role = decoded.role;
     const storedToken = await getRefreshToken(userId);
 
     if (!storedToken || storedToken !== refreshToken) {
       return res.status(401).json({ message: "Refresh token invalid" });
     }
-    const payload = { userId };
+    const payload = { userId, role };
 
     const newAccessToken = signAccessToken(payload);
     const newRefreshToken = signRefreshToken(payload);
 
     await saveRefreshToken(userId, newRefreshToken, refreshTTL);
 
-    return res.json({
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    });
+    return res
+      .cookie("accessToken", newAccess, cookieOptions.access)
+      .cookie("refreshToken", newRefresh, cookieOptions.refresh)
+      .json({ message: "Tokens refreshed" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
