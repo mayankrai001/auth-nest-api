@@ -13,7 +13,7 @@ const adminRoutes = require("./route/admin");
 app.use(helmet());
 app.use(
   cors({
-    origin: "http://localhost:8080", // Vue app
+    origin: ["http://localhost:8080", "http://52.66.190.126"], // Vue app
     credentials: true, // cookies / auth support
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
