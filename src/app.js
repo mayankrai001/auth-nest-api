@@ -16,6 +16,7 @@ app.use(
     origin: [
       "http://localhost:8080",
       "https://auth-nest-client-pgkl4qqzh-mayanks-projects-6b476de6.vercel.app", // vercel deployment
+      "https://auth-nest-client.vercel.app",
     ], // Vue app
     credentials: true, // cookies / auth support
     methods: ["GET", "POST", "PUT", "DELETE"],
