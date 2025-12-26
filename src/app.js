@@ -22,7 +22,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
   })
 );
-app.options("/*", cors());
 app.use(express.json());
 app.use(cookieParser());
 
