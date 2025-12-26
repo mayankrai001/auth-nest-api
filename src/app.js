@@ -1,5 +1,5 @@
+const cors = require("cors");
 const express = require("express");
-const cors = require("cors"); 
 const app = express();
 const mongoDB = require("./config/db");
 const cookieParser = require("cookie-parser");
@@ -22,7 +22,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
   })
 );
-app.use(cors(corsOptions));
+app.options("/*", cors());
 app.use(express.json());
 app.use(cookieParser());
 
